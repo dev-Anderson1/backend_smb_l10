@@ -2,7 +2,8 @@ name: SMB CI Test
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - develop
 
 jobs:
   build:
@@ -13,4 +14,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Testando CI
-        run: echo "GitHub Actions funcionando com sucesso!"
+        run: echo "CI rodando apenas no DEVELOP!"
