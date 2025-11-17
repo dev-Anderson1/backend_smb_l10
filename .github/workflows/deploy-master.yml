@@ -20,7 +20,7 @@ jobs:
           server: ${{ secrets.CPANEL_HOST }}
           username: ${{ secrets.CPANEL_USER }}
           password: ${{ secrets.CPANEL_PASS }}
-          protocol: ftps
+          protocol: ftp
           local-dir: ./
           server-dir: ${{ secrets.CPANEL_PATH }}
           exclude: |
