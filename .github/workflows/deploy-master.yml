@@ -7,25 +7,33 @@ on:
 
 jobs:
   deploy:
-    name: Deploy via FTPS para cPanel
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout do repositório
         uses: actions/checkout@v4
 
-      - name: Deploy para cPanel via FTPS
+      - name: Instalar dependências do Composer
+        run: composer install --no-dev --prefer-dist --optimize-autoloader
+
+      - name: Instalar dependências do Node
+        run: |
+          npm install
+          npm run build
+
+      - name: Deploy para cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.CPANEL_HOST }}
           username: ${{ secrets.CPANEL_USER }}
           password: ${{ secrets.CPANEL_PASS }}
           protocol: ftp
-          local-dir: ./
+          local-dir: ./          # envia tudo
           server-dir: ${{ secrets.CPANEL_PATH }}
           exclude: |
             **/.git*
             **/.github*
             node_modules/
+            vendor/
             tests/
             README.md
