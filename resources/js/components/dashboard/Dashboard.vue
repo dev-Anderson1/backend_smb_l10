@@ -5,7 +5,7 @@
   >
     <v-img
       src="/image.png"
-      alt="Seção de Material Bélico"
+      alt="Seção de Material Bélico "
       contain
       max-width="400"
     />
