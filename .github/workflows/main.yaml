@@ -1,0 +1,17 @@
+name: SMB CI Test
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Testando CI
+        run: echo "CI rodando apenas no DEVELOP!"

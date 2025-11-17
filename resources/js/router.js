@@ -16,6 +16,11 @@ import CautelasIndex from '@/views/cautelas/CautelasIndex.vue';
 import Armas from '@/views/Armas.vue';
 import Municoes from '@/views/Municoes.vue';
 // Caso você tenha coletes/algemas/etc, importe depois
+import Coletes from '@/views/Coletes.vue';
+import Algemas from '@/views/Algemas.vue';
+import Espadas from '@/views/Espadas.vue';
+import PostoGraduacoes from '@/views/PostoGraduacoes.vue';
+import Opms from '@/views/Opms.vue';
 
 const routes = [
 
@@ -82,6 +87,41 @@ const routes = [
     path: '/municoes', 
     name: 'Municoes', 
     component: Municoes, 
+    meta: { requiresAuth: true } 
+  },
+
+  { 
+    path: '/coletes', 
+    name: 'Coletes', 
+    component: Coletes, 
+    meta: { requiresAuth: true } 
+  },
+
+  { 
+    path: '/algemas', 
+    name: 'Algemas', 
+    component: Algemas, 
+    meta: { requiresAuth: true } 
+  },
+
+  { 
+    path: '/espadas', 
+    name: 'Espadas', 
+    component: Espadas, 
+    meta: { requiresAuth: true } 
+  },
+
+  { 
+    path: '/posto_graduacoes', 
+    name: 'PostoGraduacoes', 
+    component: PostoGraduacoes, 
+    meta: { requiresAuth: true } 
+  },
+
+  { 
+    path: '/opms', 
+    name: 'Opms', 
+    component: Opms, 
     meta: { requiresAuth: true } 
   },
 

@@ -34,11 +34,11 @@
         <v-list-item-title>Usuários</v-list-item-title>
       </v-list-item>
 
-      <v-list-item @click="$router.push('/patentes')">
+      <v-list-item @click="$router.push('/posto_graduacoes')">
         <v-list-item-title>Patentes</v-list-item-title>
       </v-list-item>
 
-      <v-list-item @click="$router.push('/unidades')">
+      <v-list-item @click="$router.push('/opms')">
         <v-list-item-title>Unidades</v-list-item-title>
       </v-list-item>
 

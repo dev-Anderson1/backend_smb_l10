@@ -27,6 +27,8 @@ class CautelaController extends Controller
     $query = Cautela::with([
         'admin:id,name,apelido',
         'usuario:id,name,apelido,email',
+        'usuario.opm:id,bpm',
+        'usuario.postoGraduacao:id,nome',
         'itens.arma:id,modelo_id,numero_serie,quantidade_carregadores,situacao',
         'itens:id,cautela_id,arma_id,colete_id,espada_id,algema_id,outros_materiais,quantidade',
         'itens.arma.modelo:id,name',
@@ -55,6 +57,8 @@ public function show($id)
     $cautela = Cautela::with([
         'admin:id,name,apelido,email',
         'usuario:id,name,apelido,email',
+        'usuario.opm:id,bpm',
+        'usuario.postoGraduacao:id,nome',
         'userConfirm:id,name,apelido,email',
         'devolvidoPor:id,name,apelido,email',
         'itens:id,cautela_id,arma_id,colete_id,espada_id,algema_id,outros_materiais,quantidade',

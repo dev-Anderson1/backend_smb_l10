@@ -1,4 +1,4 @@
-name: Deploy SMB para Produção
+name: Deploy SMB para Produção (cPanel)
 
 on:
   push:
@@ -7,26 +7,38 @@ on:
 
 jobs:
   deploy:
-    name: Deploy via SFTP para cPanel
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout do repositório
         uses: actions/checkout@v4
 
-      - name: Deploy para cPanel via SFTP
+      - name: Setup PHP 8.1
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+
+      - name: Instalar dependências do Composer
+        run: composer install --no-dev --prefer-dist --optimize-autoloader
+
+      - name: Instalar dependências do Node
+        run: |
+          npm install
+          npm run build
+
+      - name: Deploy para cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.CPANEL_HOST }}
           username: ${{ secrets.CPANEL_USER }}
           password: ${{ secrets.CPANEL_PASS }}
-          protocol: ftps
+          protocol: ftp
           local-dir: ./
           server-dir: ${{ secrets.CPANEL_PATH }}
           exclude: |
-            **/.git*
-            **/.github*
-            node_modules/
-            vendor/
-            tests/
+            .git*
+            .github*
+            node_modules/**
+            vendor/**
+            tests/**
             README.md
