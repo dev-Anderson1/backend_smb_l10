@@ -12,6 +12,7 @@ use App\Models\Cautela;
 use App\Models\Carregador;
 use App\Models\ModeloArma;
 use App\Models\Posto_Graduacao;
+use App\Models\Turma;
 use Laravel\Passport\HasApiTokens; 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -40,6 +41,7 @@ class User extends Authenticatable
         'outros_materiais',
         'arma_id',
         'apelido',
+        'is_instrutor',
     ];
 
 
@@ -114,6 +116,10 @@ public function cautelas()
     return $this->hasMany(Cautela::class);
 }
 
+public function turmas()
+{
+    return $this->belongsToMany(Turma::class, 'instrutor_turma');
+}
 
 
 

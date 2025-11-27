@@ -9,37 +9,36 @@ use Illuminate\Support\Facades\Hash;
 class UserController extends Controller
 {
     // Registro de usuáriopublic function register(Request $request)
-    public function register(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users|max:255',
-            'password' => 'required|min:6',
-            'is_admin' => 'nullable|boolean',
-            'opm_id' => 'nullable|integer',
-            'posto_graduacoes_id' => 'nullable|integer',
-           
-        ]);
-    
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'apelido' => $request->apelido,
-            'password' => Hash::make($request->password),
-            'is_admin' => $request->is_admin ?? 0,
-            'opm_id' => $request->opm_id ?? null,
-            'posto_graduacoes_id' => $request->posto_graduacoes_id ?? null,
-           
-        ]);
-    
-        $token = $user->createToken('auth_token')->plainTextToken;
-    
-        return response()->json([
-            'user' => $user,
-            'token' => $token,
-        ], 201);
-    }
-    
+   public function register(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users|max:255',
+        'password' => 'required|min:6',
+        'is_admin' => 'nullable|boolean',
+        'opm_id' => 'nullable|integer',
+        'posto_graduacoes_id' => 'nullable|integer',
+    ]);
+
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'apelido' => $request->apelido,
+        'password' => Hash::make($request->password),
+        'is_admin' => $request->is_admin ?? 0,
+        'opm_id' => $request->opm_id ?? null,
+        'posto_graduacoes_id' => $request->posto_graduacoes_id ?? null,
+    ]);
+
+    // 📌 CORREÇÃO AQUI
+    $tokenResult = $user->createToken('auth_token');
+    $token = $tokenResult->accessToken;
+
+    return response()->json([
+        'user' => $user,
+        'token' => $token,
+    ], 201);
+}
 
 
     // Mostrar todos os usuários

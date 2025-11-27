@@ -237,25 +237,49 @@ public function store(Request $request)
 
 
     // Devolução dos itens com nova autenticação do usuário
-    public function devolucao(Request $request)
-    {
-        $credentials = $request->only('email', 'password');
-    
-        if (!Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Autenticação inválida'], 401);
-        }
-    
-        $cautela = Cautela::findOrFail($request->cautela_id);
-    
-        // Garantir que a cautela esteja no status 'autorizada' para poder fazer a devolução
-        if ($cautela->status !== 'autorizada') {
-            return response()->json(['message' => 'A cautela não foi autorizada ainda.'], 400);
-        }
-    
-        $cautela->update(['status' => 'devolvido']);
-    
-        return response()->json(['message' => 'Itens devolvidos com sucesso']);
+   public function devolucao(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required|string',
+        'cautela_id' => 'required|exists:cautelas,id',
+    ]);
+
+    // 1. Autentica quem está recebendo
+    $admin = User::where('email', $request->email)->first();
+
+    if (!$admin || !\Hash::check($request->password, $admin->password)) {
+        return response()->json(['message' => 'Credenciais inválidas'], 401);
     }
+
+    // 2. Busca a cautela
+    $cautela = Cautela::with('itens')->findOrFail($request->cautela_id);
+
+    // 3. Só pode devolver cautela autorizada
+    if ($cautela->status !== 'autorizada') {
+        return response()->json(['message' => 'A cautela ainda não foi autorizada.'], 400);
+    }
+
+    // 4. Atualiza status + salva quem recebeu
+    $cautela->update([
+        'status' => 'devolvido',
+        'devolvido_por_id' => $admin->id,
+    ]);
+
+    // 5. Remove todos os itens
+    foreach ($cautela->itens as $item) {
+        $item->delete();
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Itens devolvidos com sucesso',
+        'recebido_por' => $admin->apelido ?? $admin->name,
+        'devolvido_por_id' => $admin->id,
+        'cautela_id' => $cautela->id,
+    ]);
+}
+
 
     public function usuariosComCautelasPendentes()
     {
