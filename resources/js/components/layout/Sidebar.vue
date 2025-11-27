@@ -33,22 +33,59 @@
     <v-divider />
 
     <!-- Menu Items -->
-    <v-list nav>
+   <v-list nav>
+  <template v-for="item in filteredMenu">
+
+    <!-- ITEM COM CHILDREN (MÓDULO) -->
+    <v-list-group
+      v-if="item.children"
+      :key="item.name"
+      value="false"
+    >
+      <template #activator="{ props }">
+        <v-list-item
+          v-bind="props"
+          :title="item.name"
+          rounded="xl"
+        >
+          <template #prepend>
+            <v-icon>{{ item.icon }}</v-icon>
+          </template>
+        </v-list-item>
+      </template>
+
+      <!-- SUB-ITENS -->
       <v-list-item
-         v-for="item in filteredMenu"
-        :key="item.path"
-        :to="item.path"
-        :title="item.name"
-        :value="item.path"
-        active-color="primary"
+        v-for="child in item.children"
+        :key="child.path"
+        :to="child.path"
+        :title="child.name"
         rounded="xl"
-        class="ma-1"
+        class="ml-6"
       >
         <template #prepend>
-          <v-icon>{{ item.icon }}</v-icon>
+          <v-icon small>{{ child.icon }}</v-icon>
         </template>
       </v-list-item>
-    </v-list>
+
+    </v-list-group>
+
+    <!-- ITEM NORMAL -->
+    <v-list-item
+      v-else
+      :key="item.path"
+      :to="item.path"
+      :title="item.name"
+      rounded="xl"
+    >
+      <template #prepend>
+        <v-icon>{{ item.icon }}</v-icon>
+      </template>
+    </v-list-item>
+
+  </template>
+</v-list>
+
 
     <!-- User section no final -->
     <template #append>
@@ -116,32 +153,81 @@ const chevronIcon = computed(() =>
   props.isOpen ? 'mdi-chevron-left' : 'mdi-chevron-right'
 )
 
-const menuItems = [
-  { name: 'Dashboard', path: '/dashboard', icon: 'mdi-view-dashboard', role: 'admin' },
-  // { name: 'Armas', path: '/armas', icon: 'mdi-pistol', role: 'admin' },
-  // { name: 'Cautelas', path: '/cautelas', icon: 'mdi-file-document', role: 'all' }, // todos podem ver
-  // { name: 'Munições', path: '/municoes', icon: 'mdi-ammunition', role: 'admin' },
-   { name: 'Cadastros', path: '/cadastros', icon: 'mdi-folder-cog', role: 'admin' },
+ const menuItems = [
+  // TODOS → admin, instrutor e user
+  { name: 'Dashboard', path: '/dashboard', icon: 'mdi-view-dashboard', role: 'all' },
+
+  // ADMIN → vê a lista de instrutores
+  { name: 'Instrutores', path: '/instrutores', icon: 'mdi-account-tie', role: 'admin' },
+
+  // ADMIN → vê saldos de qualquer instrutor
+  //{ name: 'Saldos de Instrutores', path: '/instrutores/saldos', icon: 'mdi-ammunition', role: 'admin' },
+    // ADMIN → adiciona saldo para qualquer instrutor
+  //{ name: 'Adicionar Saldo', path: '/saldos/adicionar', icon: 'mdi-plus-circle', role: 'admin' },
+
+
+  // INSTRUTOR → vê apenas o saldo dele
+  { name: 'Meu Saldo', path: `/instrutores/${store.state.auth.user?.id}/saldos`, icon: 'mdi-ammunition', role: 'all' },
+
+  // ADMIN → vê todas reservas
+  // INSTRUTOR → vê apenas reservas dele
+  { name: 'Reservas de Munições', path: '/reservas_municoes', icon: 'mdi-clipboard-list', role: 'all' },
+
+  // ADMIN + INSTRUTOR + USER → todo mundo vê Cautelas
+  { name: 'Cautelas', path: '/cautelas', icon: 'mdi-file-document', role: 'all' },
+
+  // ADMIN → vê cadastros
+  { name: 'Cadastros', path: '/cadastros', icon: 'mdi-folder-cog', role: 'admin' },
+
+  // ADMIN
   { name: 'Usuários', path: '/usuarios', icon: 'mdi-account-group', role: 'admin' },
+
+  // ADMIN
   { name: 'Relatórios', path: '/relatorios', icon: 'mdi-chart-box', role: 'admin' },
+
+  // ADMIN
   { name: 'Configurações', path: '/configuracoes', icon: 'mdi-cog', role: 'admin' },
-]
+];
+
 
 
 const userName = computed(() => store.state.auth?.user?.name || 'Usuário')
 const userRole = computed(() => {
-  const isAdmin = store.state.auth?.user?.is_admin
+  const u = store.state.auth?.user || {}
+  const isAdmin = u.is_admin == 1 || u.is_admin === true || u.is_admin === "1"
+  const isInstrutor = u.is_instrutor == 1 || u.is_instrutor === true || u.is_instrutor === "1"
 
-  return isAdmin == 1 || isAdmin === true || isAdmin === "1" ? "admin" : "user"
+  if (isAdmin) return 'admin'
+  if (isInstrutor) return 'instrutor'
+  return 'user'
 })
-
 
 const filteredMenu = computed(() => {
-  if (userRole.value === 'admin') {
-    return menuItems // admins veem tudo
+  const role = userRole.value;
+
+  // ADMIN → vê tudo normalmente
+  if (role === "admin") return menuItems;
+
+  // INSTRUTOR
+  if (role === "instrutor") {
+    return menuItems.filter(item => {
+
+      // permite tudo que for "all"
+      if (item.role === "all") return true;
+
+      // permite itens específicos do instrutor
+      if (item.role === "instrutor") return true;
+
+      // bloqueia itens de admin
+      return false;
+    });
   }
-  return menuItems.filter(item => item.role === 'all')
-})
+
+  // USUÁRIO COMUM (role === user)
+  return menuItems.filter(item => item.role === "all");
+});
+
+
 
 
 

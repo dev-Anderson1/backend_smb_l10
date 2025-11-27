@@ -4,6 +4,19 @@
 
     <v-list rounded>
 
+      <v-list-item @click="$router.push('/turmas')">
+        <v-list-item-title>Turmas</v-list-item-title>
+      </v-list-item>
+
+      <v-list-item @click="$router.push('/tipos_aula')">
+        <v-list-item-title>Tipos de Aula</v-list-item-title>
+      </v-list-item>
+
+      <v-list-item @click="$router.push('/calibres')">
+      <v-list-item-title>Calibres</v-list-item-title>
+    </v-list-item>
+
+
       <v-list-item @click="$router.push('/armas')">
         <v-list-item-title>Armas</v-list-item-title>
       </v-list-item>
@@ -34,11 +47,11 @@
         <v-list-item-title>Usuários</v-list-item-title>
       </v-list-item>
 
-      <v-list-item @click="$router.push('/patentes')">
+      <v-list-item @click="$router.push('/posto_graduacoes')">
         <v-list-item-title>Patentes</v-list-item-title>
       </v-list-item>
 
-      <v-list-item @click="$router.push('/unidades')">
+      <v-list-item @click="$router.push('/opms')">
         <v-list-item-title>Unidades</v-list-item-title>
       </v-list-item>
 

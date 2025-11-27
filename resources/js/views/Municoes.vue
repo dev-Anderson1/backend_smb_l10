@@ -9,25 +9,30 @@
     </v-row>
 
     <!-- 📋 Tabela de munições -->
-    <v-data-table
-      :headers="headers"
-      :items="municoes"
-      :loading="loading"
-      class="elevation-2 tabela-municoes"
-      item-value="id"
-      no-data-text="Nenhuma munição cadastrada"
-    >
-      <!-- ✅ Coluna de ações -->
-      <template #item.acoes="{ item }">
-        <v-btn icon size="small" color="primary" variant="text" @click="editMunicao(item)">
-          <v-icon>mdi-pencil</v-icon>
-        </v-btn>
+   <v-data-table
+  :headers="headers"
+  :items="municoes"
+  :loading="loading"
+  class="elevation-2 tabela-municoes"
+  item-value="id"
+  no-data-text="Nenhuma munição cadastrada"
+>
+  <!-- Calibre formatado -->
+  <template #item.calibre="{ item }">
+    {{ item.calibre ? item.calibre.nome + ' ' + item.calibre.medidas : '-' }}
+  </template>
 
-        <v-btn icon size="small" color="error" variant="text" @click="confirmDelete(item)">
-          <v-icon>mdi-delete</v-icon>
-        </v-btn>
-      </template>
-    </v-data-table>
+  <!-- Ações -->
+  <template #item.acoes="{ item }">
+    <v-btn icon size="small" variant="text" color="primary" @click="editMunicao(item)">
+      <v-icon>mdi-pencil</v-icon>
+    </v-btn>
+    <v-btn icon size="small" variant="text" color="error" @click="confirmDelete(item)">
+      <v-icon>mdi-delete</v-icon>
+    </v-btn>
+  </template>
+</v-data-table>
+
 
     <!-- 🧩 Modal de cadastro/edição -->
     <v-dialog v-model="dialog" persistent max-width="500px">
@@ -127,7 +132,7 @@ const form = ref({
 const headers = [
   { title: 'ID', key: 'id', align: 'start' },
   { title: 'Tipo', key: 'tipo' },
-  { title: 'Calibre', key: 'calibre_id' },
+  { title: 'Calibre', key: 'calibre' },
   { title: 'Quantidade', key: 'quantidade' },
   { title: 'Ações', key: 'acoes', sortable: false, align: 'center' }
 ]

@@ -10,7 +10,7 @@ class MunicaoController extends Controller
     // Lista todas as munições
    public function index()
 {
-    return response()->json(Municao::all());
+    return Municao::with('calibre')->get();
 }
 
 public function store(Request $request)

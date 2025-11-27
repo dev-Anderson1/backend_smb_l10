@@ -16,6 +16,14 @@ import CautelasIndex from '@/views/cautelas/CautelasIndex.vue';
 import Armas from '@/views/Armas.vue';
 import Municoes from '@/views/Municoes.vue';
 // Caso você tenha coletes/algemas/etc, importe depois
+import Coletes from '@/views/Coletes.vue';
+import Algemas from '@/views/Algemas.vue';
+import Espadas from '@/views/Espadas.vue';
+import PostoGraduacoes from '@/views/PostoGraduacoes.vue';
+import Opms from '@/views/Opms.vue';
+import ReservasMunicoes from '@/views/ReservasMunicoes.vue';
+
+
 
 const routes = [
 
@@ -85,15 +93,99 @@ const routes = [
     meta: { requiresAuth: true } 
   },
 
-  // Se tiver mais, basta adicionar:
-  // {
-  //   path: '/coletes',
-  //   name: 'Coletes',
-  //   component: () => import('@/views/Coletes.vue'),
-  //   meta: { requiresAuth: true }
-  // },
+  { 
+    path: '/coletes', 
+    name: 'Coletes', 
+    component: Coletes, 
+    meta: { requiresAuth: true } 
+  },
 
-  // USUÁRIOS
+  { 
+    path: '/algemas', 
+    name: 'Algemas', 
+    component: Algemas, 
+    meta: { requiresAuth: true } 
+  },
+
+  { 
+    path: '/espadas', 
+    name: 'Espadas', 
+    component: Espadas, 
+    meta: { requiresAuth: true } 
+  },
+
+  { 
+    path: '/posto_graduacoes', 
+    name: 'PostoGraduacoes', 
+    component: PostoGraduacoes, 
+    meta: { requiresAuth: true } 
+  },
+
+  { 
+    path: '/opms', 
+    name: 'Opms', 
+    component: Opms, 
+    meta: { requiresAuth: true } 
+  },
+
+  { 
+    path: '/reservas_municoes', 
+    name: 'ReservasMunicoes', 
+    component: ReservasMunicoes, 
+    meta: { requiresAuth: true } 
+  },
+
+// INSTRUTORES
+{
+  path: '/instrutores',
+  name: 'InstrutoresIndex',
+  component: () => import('@/views/instrutores/Instrutores.vue'),
+  meta: { requiresAuth: true }
+},
+
+{
+  path: '/instrutores/:id/saldos',
+  name: 'InstrutorSaldos',
+  component: () => import('@/views/instrutores/InstrutorSaldos.vue'),
+  meta: { requiresAuth: true }
+},
+
+{
+  path: '/instrutores/:id/adicionar-saldo',
+  name: 'InstrutorAddSaldo',
+  component: () => import('@/views/instrutores/InstrutorAddSaldo.vue'),
+  meta: { requiresAuth: true }
+},
+
+{
+  path: '/turmas',
+  name: 'Turmas',
+  component: () => import('@/views/Turmas.vue'),
+  meta: { requiresAuth: true }
+},
+
+{
+  path: '/tipos_aula',
+  name: 'TiposAula',
+  component: () => import('@/views/TiposAula.vue'),
+  meta: { requiresAuth: true }
+},
+
+{
+  path: "/calibres",
+  name: "Calibres",
+  component: () => import("@/views/Calibres.vue"),
+  meta: { requiresAuth: true }
+},
+
+{
+  path: "/saldos/adicionar",
+  name: "SaldoAddGlobal",
+  component: () => import("@/views/instrutores/AdicionarSaldoGlobal.vue"),
+  meta: { requiresAuth: true, adminOnly: true }
+
+},
+
   { 
     path: '/usuarios', 
     name: 'Usuarios', 

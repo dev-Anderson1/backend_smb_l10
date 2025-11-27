@@ -27,6 +27,8 @@ class CautelaController extends Controller
     $query = Cautela::with([
         'admin:id,name,apelido',
         'usuario:id,name,apelido,email',
+        'usuario.opm:id,bpm',
+        'usuario.postoGraduacao:id,nome',
         'itens.arma:id,modelo_id,numero_serie,quantidade_carregadores,situacao',
         'itens:id,cautela_id,arma_id,colete_id,espada_id,algema_id,outros_materiais,quantidade',
         'itens.arma.modelo:id,name',
@@ -55,6 +57,8 @@ public function show($id)
     $cautela = Cautela::with([
         'admin:id,name,apelido,email',
         'usuario:id,name,apelido,email',
+        'usuario.opm:id,bpm',
+        'usuario.postoGraduacao:id,nome',
         'userConfirm:id,name,apelido,email',
         'devolvidoPor:id,name,apelido,email',
         'itens:id,cautela_id,arma_id,colete_id,espada_id,algema_id,outros_materiais,quantidade',
@@ -233,25 +237,49 @@ public function store(Request $request)
 
 
     // Devolução dos itens com nova autenticação do usuário
-    public function devolucao(Request $request)
-    {
-        $credentials = $request->only('email', 'password');
-    
-        if (!Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Autenticação inválida'], 401);
-        }
-    
-        $cautela = Cautela::findOrFail($request->cautela_id);
-    
-        // Garantir que a cautela esteja no status 'autorizada' para poder fazer a devolução
-        if ($cautela->status !== 'autorizada') {
-            return response()->json(['message' => 'A cautela não foi autorizada ainda.'], 400);
-        }
-    
-        $cautela->update(['status' => 'devolvido']);
-    
-        return response()->json(['message' => 'Itens devolvidos com sucesso']);
+   public function devolucao(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required|string',
+        'cautela_id' => 'required|exists:cautelas,id',
+    ]);
+
+    // 1. Autentica quem está recebendo
+    $admin = User::where('email', $request->email)->first();
+
+    if (!$admin || !\Hash::check($request->password, $admin->password)) {
+        return response()->json(['message' => 'Credenciais inválidas'], 401);
     }
+
+    // 2. Busca a cautela
+    $cautela = Cautela::with('itens')->findOrFail($request->cautela_id);
+
+    // 3. Só pode devolver cautela autorizada
+    if ($cautela->status !== 'autorizada') {
+        return response()->json(['message' => 'A cautela ainda não foi autorizada.'], 400);
+    }
+
+    // 4. Atualiza status + salva quem recebeu
+    $cautela->update([
+        'status' => 'devolvido',
+        'devolvido_por_id' => $admin->id,
+    ]);
+
+    // 5. Remove todos os itens
+    foreach ($cautela->itens as $item) {
+        $item->delete();
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Itens devolvidos com sucesso',
+        'recebido_por' => $admin->apelido ?? $admin->name,
+        'devolvido_por_id' => $admin->id,
+        'cautela_id' => $cautela->id,
+    ]);
+}
+
 
     public function usuariosComCautelasPendentes()
     {

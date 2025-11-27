@@ -8,6 +8,12 @@ use App\Http\Controllers\{
     EspadaController, CalibreController, CautelaController, MunicaoController, CarregadorController,
     ModeloArmaController, PostoGraduacaoController, RelatorioDiarioController
 };
+use App\Http\Controllers\ReservaMunicaoController;
+use App\Http\Controllers\TurmaController;
+use App\Http\Controllers\TipoAulaController;
+use App\Http\Controllers\InstrutorController;
+use App\Http\Controllers\InstrutorTurmaController;
+use App\Http\Controllers\InstrutorSaldoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -70,6 +76,47 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('opms', OpmController::class);
     Route::apiResource('calibres', CalibreController::class);
     Route::apiResource('coletes', ColeteController::class);
+
+
+    Route::get('/instrutores', [InstrutorController::class, 'index']);
+    Route::post('/instrutores', [InstrutorController::class, 'store']);
+    Route::put('/instrutores/{id}', [InstrutorController::class, 'update']);
+    Route::delete('/instrutores/{id}', [InstrutorController::class, 'destroy']);
+
+    // TURMAS DO INSTRUTOR
+    Route::get('/instrutores/{id}/turmas', [InstrutorTurmaController::class, 'index']);
+    Route::post('/instrutores/{id}/turmas', [InstrutorTurmaController::class, 'store']);
+    Route::delete('/instrutores/{id}/turmas/{turmaId}', [InstrutorTurmaController::class, 'destroy']);
+
+    // SALDO DO INSTRUTOR
+    // Lista todos os instrutores com seus saldos (admin)
+    Route::get('/instrutores/saldos', [InstrutorSaldoController::class, 'all']);
+    Route::get('/instrutores/{id}/saldos', [InstrutorSaldoController::class, 'index']);
+    Route::post('/instrutores/{id}/saldos', [InstrutorSaldoController::class, 'adicionarSaldo']);
+    Route::put('/instrutores/saldos/{saldo}', [InstrutorSaldoController::class, 'updateSaldo']);
+    Route::post('/instrutores/saldos', [InstrutorSaldoController::class, 'adicionarSaldoGlobal']);
+
+
+
+    // SALDO DO PRÓPRIO INSTRUTOR
+    Route::get('/me/saldos', [InstrutorSaldoController::class, 'meusSaldos']);
+
+    // Reservas de munições
+    Route::get('/reservas_municoes', [ReservaMunicaoController::class, 'index']);
+    Route::post('/reservas_municoes', [ReservaMunicaoController::class, 'store']);
+    Route::post('/reservas_municoes/{id}/approve', [ReservaMunicaoController::class, 'approve']);
+    Route::post('/reservas_municoes/{id}/cancel', [ReservaMunicaoController::class, 'cancel']);
+    Route::post('/reservas_municoes/{id}/devolucao', [ReservaMunicaoController::class, 'devolucao']);
+
+    // Turmas e tipos de aula (listagem para selects no frontend)
+   Route::get('/turmas', [TurmaController::class, 'index']);
+    Route::post('/turmas', [TurmaController::class, 'store']);
+    Route::put('/turmas/{id}', [TurmaController::class, 'update']);
+    Route::delete('/turmas/{id}', [TurmaController::class, 'destroy']);
+
+
+    Route::get('/tipo_aulas', [TipoAulaController::class, 'index']);
+    Route::post('/tipo_aulas', [TipoAulaController::class, 'store']);
 
     // Relatórios
     Route::post('/relatorios_diarios', [RelatorioDiarioController::class, 'store']);
