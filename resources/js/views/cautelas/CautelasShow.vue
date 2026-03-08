@@ -107,6 +107,7 @@
           v-if="isAdmin && cautela?.itens?.length"
           color="primary"
           class="mt-4 text-white"
+          :disabled="allItemsDevolvidos"
           @click="abrirModalDevolucao"
         >
           Devolver Todos os Itens
