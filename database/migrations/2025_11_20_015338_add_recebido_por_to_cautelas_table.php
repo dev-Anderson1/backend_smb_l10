@@ -12,7 +12,9 @@ return new class extends Migration
    public function up()
 {
     Schema::table('cautelas', function (Blueprint $table) {
-        $table->string('recebido_por')->nullable()->after('devolvido_por_id');
+        if (!Schema::hasColumn('cautelas', 'recebido_por')) {
+            $table->string('recebido_por')->nullable()->after('devolvido_por_id');
+        }
 
         // $table->foreign('devolvido_por_id')
         //     ->references('id')

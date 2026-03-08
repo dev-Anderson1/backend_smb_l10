@@ -25,46 +25,79 @@
 
           <v-col cols="12" md="6">
             <strong>Furriel (recebeu):</strong>
-            {{ cautela?.recebido_por || "—" }}
+            {{ cautela?.devolvido_por?.apelido || "—" }}
           </v-col>
 
           <v-col cols="12" md="6">
             <strong>Status:</strong>
             <v-chip :color="statusColor" dark>
-              {{ cautela?.status }}
+              {{ statusLabel }}
             </v-chip>
           </v-col>
+          <v-col cols="12" md="6" v-if="showRecebidoPor">
+            <strong>Furriel (recebeu):</strong>
+            {{ cautela?.devolvido_por?.apelido || "—" }}
+          </v-col>
         </v-row>
-
         <v-divider class="my-4"></v-divider>
 
         <h3 class="mb-2">Itens</h3>
 
         <v-table>
           <thead>
-            <tr>
-              <th>Tipo</th>
-              <th>Descrição</th>
-              <th>Quantidade</th>
-              <th style="width: 140px;">Ações</th>
-            </tr>
-          </thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Descrição</th>
+                <th>Quantidade</th>
+                <th style="width: 240px;">Recebimento</th>
+                <th style="width: 140px;">Ações</th>
+              </tr>
+            </thead>
 
           <tbody>
             <tr v-for="item in cautela?.itens" :key="item.id">
               <td>{{ tipoItem(item) }}</td>
               <td>{{ descricaoItem(item) }}</td>
               <td>{{ item.quantidade }}</td>
+
               <td>
-                <v-btn
-                  v-if="isAdmin"
-                  color="red"
-                  size="small"
-                  class="text-white"
-                  @click="removerItem(item.id)"
-                >
-                  Devolver
-                </v-btn>
+                <div v-if="itemDevolvido(item)" class="recebimento-coluna">
+                  <div class="recebimento-linha">
+                    <span class="recebimento-label">Furriel:</span>
+                    <span class="recebimento-valor">{{ itemReceivedBy(item) || '—' }}</span>
+                  </div>
+
+                  <div class="recebimento-linha">
+                    <span class="recebimento-label">Data:</span>
+                    <span class="recebimento-valor">{{ itemReturnDate(item) || '—' }}</span>
+                  </div>
+                </div>
+
+                <div v-else class="recebimento-vazio">—</div>
+              </td>
+
+              <td>
+                <div class="acoes-coluna">
+                  <v-btn
+                    v-if="isAdmin"
+                    :color="itemDevolvido(item) ? 'green' : 'red'"
+                    size="small"
+                    class="text-white"
+                    :disabled="itemDevolvido(item)"
+                    @click="devolverItem(item)"
+                  >
+                    {{ itemDevolvido(item) ? 'Devolvido' : 'Devolver' }}
+                  </v-btn>
+
+                  <v-chip
+                    v-else
+                    :color="itemDevolvido(item) ? 'green' : 'orange'"
+                    small
+                    class="ma-0"
+                  >
+                    {{ itemStatusLabel(item) }}
+                  </v-chip>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -121,8 +154,44 @@ export default {
       return this.$store.state.auth.user?.is_admin == 1;
     },
 
+    allItemsDevolvidos() {
+      const items = this.cautela?.itens ?? [];
+      return items.length > 0 && items.every(item => this.itemDevolvido(item));
+    },
+
+    statusLabel() {
+      if (!this.cautela) return "—";
+
+      if (this.allItemsDevolvidos) {
+        return "devolvido";
+      }
+
+      if (this.cautela.status === "atrasado") {
+        return "atrasado";
+      }
+
+      if (this.cautela.status === "autorizada") {
+        return "autorizada";
+      }
+
+      return "pendente";
+    },
+
+    devolvidoPorName() {
+      return (
+        this.cautela?.devolvidoPor?.apelido ||
+        this.cautela?.devolvidoPor?.name ||
+        this.cautela?.recebido_por ||
+        null
+      );
+    },
+
+      showRecebidoPor() {
+        return !!(this.cautela?.recebido_por || this.cautela?.devolvidoPor);
+      },
+
     statusColor() {
-      switch (this.cautela?.status) {
+      switch (this.statusLabel) {
         case "pendente": return "orange";
         case "autorizada": return "blue";
         case "devolvido": return "green";
@@ -163,42 +232,122 @@ export default {
       return partes.length ? partes.join(" | ") : "—";
     },
 
-    removerItem(itemId) {
-      api.post(`/cautelas/${this.cautela.id}/devolver-item`, { item_id: itemId })
-        .then(() => {
-          this.cautela.itens = this.cautela.itens.filter(i => i.id !== itemId);
+    devolverItem(item) {
+      if (this.itemDevolvido(item)) return;
+
+      api.post(`/cautelas/${this.cautela.id}/devolver-item`, { item_id: item.id })
+        .then(res => {
+          const updated = res.data.item;
+          item.devolvido = true;
+          item.status = "devolvido";
+          if (updated.devolvido_em) {
+            item.devolvido_em = updated.devolvido_em;
+          }
+          if (updated.devolvido_por) {
+            item.devolvido_por = updated.devolvido_por;
+          }
         })
         .catch(err => console.error(err));
+    },
+
+    itemDevolvido(item) {
+      return !!item.devolvido || item.status === "devolvido";
+    },
+
+    itemStatusLabel(item) {
+      return this.itemDevolvido(item) ? "Desacautelado" : "Cautelado";
+    },
+
+    itemReceivedBy(item) {
+      return (
+        item.devolvido_por?.apelido ||
+        item.devolvido_por?.name ||
+        this.devolvidoPorName ||
+        null
+      );
+    },
+
+    itemReturnDate(item) {
+      if (!item.devolvido_em) {
+        return null;
+      }
+
+      const parsed = new Date(item.devolvido_em);
+
+      if (Number.isNaN(parsed.getTime())) {
+        return item.devolvido_em;
+      }
+
+      return parsed.toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
     },
 
     abrirModalDevolucao() {
       this.authDevolucaoDialog = true;
     },
 
-  confirmarDevolucaoTodos() {
-  api.post(`/cautelas/${this.cautela.id}/devolver-todos`, this.authDevolucao)
-    .then(res => {
-      this.authDevolucaoDialog = false;
+    confirmarDevolucaoTodos() {
+      api.post(`/cautelas/${this.cautela.id}/devolver-todos`, this.authDevolucao)
+        .then(res => {
+          this.authDevolucaoDialog = false;
+          this.carregarCautela();
+        })
+        .catch(() => {
+          alert("Erro na autenticação ou devolução.");
+        });
+    },
 
-      // Atualiza status localmente
-      this.cautela.status = "devolvido";
-      this.cautela.itens = [];
-
-      // 🔥 Guardar quem recebeu a devolução
-      this.cautela.recebido_por = res.data.recebido_por;
-    })
-    .catch(err => {
-      alert("Erro na autenticação ou devolução.");
-    });
-}
-
-
-
+    carregarCautela() {
+      api.get(`/cautelas/${this.$route.params.id}`).then(res => {
+        this.cautela = res.data;
+      });
+    },
   },
+
   mounted() {
-    api.get(`/cautelas/${this.$route.params.id}`).then(res => {
-      this.cautela = res.data;
-    });
+    this.carregarCautela();
   },
 };
 </script>
+
+<style scoped>
+.recebimento-coluna {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 220px;
+}
+
+.recebimento-linha {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  line-height: 1.4;
+}
+
+.recebimento-label {
+  font-weight: 600;
+  color: #424242;
+  min-width: 56px;
+}
+
+.recebimento-valor {
+  color: #616161;
+  word-break: break-word;
+}
+
+.recebimento-vazio {
+  color: #9e9e9e;
+}
+
+.acoes-coluna {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+}
+</style>

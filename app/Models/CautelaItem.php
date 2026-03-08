@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\User;
 
 class CautelaItem extends Model
 {
@@ -17,6 +18,9 @@ class CautelaItem extends Model
         'algema_id',
         'outros_materiais',
         'quantidade',
+        'devolvido',
+        'devolvido_por_id',
+        'devolvido_em',
     ];
 
   protected $casts = [
@@ -54,5 +58,10 @@ class CautelaItem extends Model
     public function algema()
     {
         return $this->belongsTo(Algema::class);
+    }
+
+    public function devolvidoPor()
+    {
+        return $this->belongsTo(User::class, 'devolvido_por_id');
     }
 }

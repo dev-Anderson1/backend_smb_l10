@@ -30,7 +30,8 @@ class CautelaController extends Controller
         'usuario.opm:id,bpm',
         'usuario.postoGraduacao:id,nome',
         'itens.arma:id,modelo_id,numero_serie,quantidade_carregadores,situacao',
-        'itens:id,cautela_id,arma_id,colete_id,espada_id,algema_id,outros_materiais,quantidade',
+        'itens:id,cautela_id,arma_id,colete_id,espada_id,algema_id,outros_materiais,quantidade,devolvido,devolvido_por_id,devolvido_em',
+        'itens.devolvidoPor:id,name,apelido',
         'itens.arma.modelo:id,name',
         'itens.colete:id,tipo,num_serie',
         'itens.algema:id,tipo,num_serie',
@@ -61,7 +62,8 @@ public function show($id)
         'usuario.postoGraduacao:id,nome',
         'userConfirm:id,name,apelido,email',
         'devolvidoPor:id,name,apelido,email',
-        'itens:id,cautela_id,arma_id,colete_id,espada_id,algema_id,outros_materiais,quantidade',
+        'itens:id,cautela_id,arma_id,colete_id,espada_id,algema_id,outros_materiais,quantidade,devolvido,devolvido_por_id,devolvido_em',
+        'itens.devolvidoPor:id,name,apelido',
         'itens.arma:id,modelo_id,numero_serie,quantidade_carregadores,situacao',
         'itens.arma.modelo:id,name',
         'itens.colete:id,tipo,num_serie',
@@ -402,9 +404,18 @@ public function authUser(Request $request)
         return response()->json(['message' => 'Item não encontrado'], 404);
     }
 
-    $item->delete();
+        $item->update([
+            'devolvido' => true,
+            'devolvido_por_id' => Auth::id(),
+            'devolvido_em' => now(),
+        ]);
 
-    return response()->json(['message' => 'Item devolvido com sucesso']);
+        $item->load('devolvidoPor');
+
+        return response()->json([
+            'message' => 'Item devolvido com sucesso',
+            'item' => $item,
+        ]);
 }
 
 
@@ -434,7 +445,15 @@ public function devolverTodos(Request $request, $id)
     ]);
 
     foreach ($cautela->itens as $item) {
-        $item->delete();
+        if ($item->devolvido) {
+            continue;
+        }
+
+        $item->update([
+            'devolvido' => true,
+            'devolvido_por_id' => $admin->id,
+            'devolvido_em' => now(),
+        ]);
     }
 
     return response()->json([

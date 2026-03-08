@@ -173,7 +173,17 @@
       <v-card>
         <v-card-title class="text-h6">Autorização do Usuário</v-card-title>
         <v-card-text>
-          <v-text-field v-model="auth.email" label="E-mail do usuário" type="email" required />
+          <p class="mb-4">
+            Apenas o usuário selecionado (<strong>{{ usuarioSelecionado?.apelido || 'sem usuário' }}</strong>) pode autorizar esta cautela.
+            Você será redirecionado para o histórico dele após a confirmação.
+          </p>
+          <v-text-field
+            v-model="auth.email"
+            label="E-mail do usuário"
+            type="email"
+            required
+            readonly
+          />
           <v-text-field v-model="auth.password" label="Senha do usuário" type="password" required />
         </v-card-text>
         <v-card-actions>
@@ -187,7 +197,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import api from "@/services/api";
 
 export default {
@@ -211,13 +220,31 @@ export default {
     };
   },
 
- mounted() {
-  api.get("/users").then(r => (this.users = r.data));
-  api.get("/armas").then(r => (this.armas = r.data));
-  api.get("/coletes").then(r => (this.coletes = r.data));
-  api.get("/algemas").then(r => (this.algemas = r.data));
-  api.get("/espadas").then(r => (this.espadas = r.data));
-},
+  computed: {
+    usuarioSelecionado() {
+      const targetId = this.user_id;
+      if (!targetId || !this.users.length) return null;
+      return this.users.find(u => String(u.id) === String(targetId)) ?? null;
+    },
+  },
+
+  watch: {
+    user_id: {
+      handler() {
+        this.auth.email = this.usuarioSelecionado?.email ?? "";
+        this.auth.password = "";
+      },
+      immediate: true,
+    },
+  },
+
+  mounted() {
+    api.get("/users").then(r => (this.users = r.data));
+    api.get("/armas").then(r => (this.armas = r.data));
+    api.get("/coletes").then(r => (this.coletes = r.data));
+    api.get("/algemas").then(r => (this.algemas = r.data));
+    api.get("/espadas").then(r => (this.espadas = r.data));
+  },
 
   methods: {
     addArma() { this.armasSelecionadas.push({ arma_id: "", quantidade: 1 }); },
@@ -227,40 +254,45 @@ export default {
     addOutro() { this.outrosSelecionados.push({ outros_materiais: "", quantidade: 1 }); },
 
     abrirAutenticacao() {
-      if (!this.user_id) {
+      if (!this.usuarioSelecionado) {
         alert("Selecione um usuário antes de salvar.");
         return;
       }
+      this.auth.email = this.usuarioSelecionado.email ?? "";
       this.authDialog = true;
     },
 
-  confirmarAuth() {
-  this.authDialog = false;
+    confirmarAuth() {
+      if (!this.usuarioSelecionado) {
+        alert("Selecione um usuário válido antes de confirmar.");
+        return;
+      }
+      this.authDialog = false;
 
-  const payload = {
-    admin_id: this.$store.state.auth.user.id,
-    user_id: this.user_id,
-    email: this.auth.email,
-    password: this.auth.password,
-    itens: {
-      armas: this.armasSelecionadas,
-      coletes: this.coletesSelecionados,
-      algemas: this.algemasSelecionadas,
-      espadas: this.espadasSelecionadas,
-      outros: this.outrosSelecionados,
-    },
-  };
+      const payload = {
+        admin_id: this.$store.state.auth.user.id,
+        user_id: this.user_id,
+        email: this.auth.email,
+        password: this.auth.password,
+        itens: {
+          armas: this.armasSelecionadas,
+          coletes: this.coletesSelecionados,
+          algemas: this.algemasSelecionadas,
+          espadas: this.espadasSelecionadas,
+          outros: this.outrosSelecionados,
+        },
+      };
 
-     api.post("/cautela/store", payload)
-    .then(res => {
-      alert("Cautela criada com sucesso!");
-      this.$router.push(`/cautelas/${res.data.cautela_id}`);
-    })
-    .catch(err => {
-      console.error(err);
-      alert("Erro ao autenticar ou salvar a cautela.");
-    });
-}
+      api.post("/cautela/store", payload)
+        .then(res => {
+          alert("Cautela criada com sucesso!");
+          this.$router.push(`/cautelas/${res.data.cautela_id}`);
+        })
+        .catch(err => {
+          console.error(err);
+          alert("Erro ao autenticar ou salvar a cautela.");
+        });
+    }
   },
 };
 </script>
